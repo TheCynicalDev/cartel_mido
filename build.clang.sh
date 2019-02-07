@@ -35,23 +35,6 @@ cd $ZIP_DIR
 make clean &>/dev/null
 cd ..
 
-# For MIUI Build
-# Credit Adek Maulana <adek@techdro.id>
-OUTDIR="$KERNEL_DIR/out/"
-VENDOR_MODULEDIR="$KERNEL_DIR/AnyKernel3/modules/vendor/lib/modules"
-STRIP="$KERNEL_DIR/stock/bin/$(echo "$(find "$KERNEL_DIR/stock/bin" -type f -name "aarch64-*-gcc")" | awk -F '/' '{print $NF}' |\
-            sed -e 's/gcc/strip/')"
-for MODULES in $(find "${OUTDIR}" -name '*.ko'); do
-    "${STRIP}" --strip-unneeded --strip-debug "${MODULES}"
-    "${OUTDIR}"/scripts/sign-file sha512 \
-            "${OUTDIR}/certs/signing_key.pem" \
-            "${OUTDIR}/certs/signing_key.x509" \
-            "${MODULES}"
-    find "${OUTDIR}" -name '*.ko' -exec cp {} "${VENDOR_MODULEDIR}" \;
-done
-cd libufdt/src && python mkdtboimg.py create $OUTDIR/arch/arm64/boot/dtbo.img $OUTDIR/arch/arm64/boot/dts/qcom/*.dtbo
-echo -e "\n(i) Done moving modules"
-
 cd $ZIP_DIR
 cp $KERN_IMG zImage
 cp $OUTDIR/arch/arm64/boot/dtbo.img $ZIP_DIR
